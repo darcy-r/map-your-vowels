@@ -1,0 +1,23 @@
+#visualisation-pane {
+  width: 100vh;
+  height: 100vh;
+  position: absolute;
+  right: 0;
+}
+
+.tooltip-paragraph + .tooltip-paragraph {
+  margin-top: 0.5rem;
+}
+
+.control-pane {
+  height: 100vh;
+  overflow: auto;
+  min-width: 18rem;
+  max-width: min(30rem, calc(100vw - 100vh));
+  position: absolute;
+  left: 0;
+}
+
+.control-pane-content {
+  margin: 2rem;
+}
