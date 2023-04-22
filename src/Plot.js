@@ -7,7 +7,6 @@ import { GridRows, GridColumns } from '@visx/grid';
 import { schemeRdYlBu, interpolateRdYlBu } from 'd3-scale-chromatic';
 import { useTooltip, withTooltip, Tooltip, defaultStyles } from '@visx/tooltip';
 import { WithTooltipProvidedProps } from '@visx/tooltip/lib/enhancers/withTooltip';
-// import useWindowDimensions from './useWindowDimensions.js'
 
 // tooltip stuff
 const tooltipStyles = {
