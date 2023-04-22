@@ -145,7 +145,7 @@ function ScatterPlot(props) {
                     pointerEvents="none"
                     fill={categoryColour(d)}
                   >
-                    {d.elicitation} {d.dataset == "reference" && "/" + d.description + "/"}
+                    {d.citation_form} {d.dataset == "reference" && "/" + d.description + "/"}
                   </text>
                 </Group>
               );
@@ -156,7 +156,7 @@ function ScatterPlot(props) {
         {tooltipOpen && tooltipData && (
           <Tooltip top={tooltipTop} left={tooltipLeft} style={tooltipStyles}>
             <div className="tooltip-paragraph">
-              {tooltipData.elicitation} vowel<br/>
+              {tooltipData.citation_form} vowel<br/>
               F1: {tooltipData.f1} Hz<br/>
               F2: {tooltipData.f2} Hz
             </div>
