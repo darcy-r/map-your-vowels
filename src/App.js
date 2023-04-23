@@ -55,11 +55,52 @@ function App() {
   }
 
   function handleReferenceDataSelection(selectedReferenceDataset) {
+    if (varietyParentLanguages[selectedReferenceDataset] != varietyParentLanguages[referenceDataset]) {
+      setFormantValues(
+        citationForms[varietyParentLanguages[selectedReferenceDataset]].reduce((o, key) => ({ ...o, [key]: {"f1" : "", "f2" : ""}}), {})
+      )
+    }
     setReferenceDataset(selectedReferenceDataset);
     // update the reference language only if it changes
     if (varietyParentLanguages[selectedReferenceDataset] != referenceLanguage) {
       setReferenceLanguage(varietyParentLanguages[selectedReferenceDataset]);
     }
+  }
+
+  function uploadFile(event) {
+    const file = event.target.files[0];
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const text = e.target.result;
+        const lines = text.split('\n');
+        // identify which columns are where
+        const columns = lines[0].split(',');
+        const citationFormCol = indexCol('citation_form', columns);
+        const f1Col = indexCol('f1', columns);
+        const f2Col = indexCol('f2', columns);
+        // read into object designed for plotting
+        let userChartData = [];
+        for (let line = 1; line < lines.length; line++) {
+          let citationForm = lines[line].split(',')[citationFormCol];
+          let f1 = parseFloat(lines[line].split(',')[f1Col]);
+          let f2 = parseFloat(lines[line].split(',')[f2Col]);
+          userChartData.push({
+            "citation_form" : citationForm,
+            "f1" : f1,
+            "f2" : f2,
+            "dataset" : "user input"
+          });
+          // update formant values
+          let updateObj = formantValues;
+          updateObj[citationForm] = {"f1" : f1, "f2" : f2};
+          setFormantValues(updateObj);
+        }
+        // update chart
+        setChartData(
+          normaliseDataset(referenceData[referenceDataset], normalisationMethod).concat(normaliseDataset(userChartData, normalisationMethod))
+        );
+    };
+    reader.readAsText(file);
   }
 
   return (
@@ -74,7 +115,7 @@ function App() {
         <div className="control-pane-content">
           <h2>Map your vowels</h2>
           <h5>Instructions</h5>
-          <p>
+          <div>
             <ul>
               <li><a href="https://www.fon.hum.uva.nl/praat/">Download Praat</a></li>
               <li>Record the words in citation form below:
@@ -90,22 +131,59 @@ function App() {
               </li>
               <li>Analyse on plot alone, or normalise formant values and compare to reference data</li>
             </ul>
-          </p>
+          </div>
           <h5>Settings</h5>
           <Selector
             label="Normalisation"
             selectedValue={normalisationMethod}
             changeHandler={handleNormalisationSelection}
             options={normalisationMethods}/>
+          <p><i>
+            normalisation is only effective once the entire vowel set has been entered
+          </i></p>
           <Selector
             label="Reference data"
             selectedValue={referenceDataset}
             changeHandler={handleReferenceDataSelection}
             options={Object.keys(referenceData)}/>
           <h5>Your data</h5>
-          <FormantForm citationForms={citationForms[referenceLanguage]} variety={varietyParentLanguages[referenceDataset]} changeHandler={handleChange}/>
+          <p>
+            You can upload your recorded formant values from a .csv file containing the columnns:
+            <ul>
+              <li><code>citation_form</code> containing the citation forms listed below (heed, hid, etc.)</li>
+              <li><code>f1</code> containing the first formant values</li>
+              <li><code>f2</code> containing the second formant values</li>
+            </ul>
+          </p>
+          <FileInput uploadFileFunc={uploadFile}/>
+          <p>
+            Or you can input and ajust the values manually using the forms below:
+          </p>
+          <FormantForm
+            variety={varietyParentLanguages[referenceDataset]}
+            citationForms={citationForms[referenceLanguage]}
+            formantValues={formantValues}
+            changeHandler={handleChange}/>
         </div>
       </div>
+    </div>
+  );
+}
+
+function indexCol(columnName, columns) {
+  for (let i = 0; i < columns.length; i++) {
+    if (columns[i].toLowerCase() == columnName) return i
+  }
+}
+
+function FileInput({ uploadFileFunc }) {
+  return(
+    <div>
+      <Form>
+        <Form.Group className="mb-3" controlId="formBasicEmail">
+          <Form.Control type="file" onChange={uploadFileFunc} />
+        </Form.Group>
+      </Form>
     </div>
   );
 }
@@ -118,18 +196,28 @@ function Selector({ label, changeHandler, selectedValue, options }) {
           {label}
         </Form.Label>
         <Form.Select aria-label="Normalisation" defaultValue={selectedValue} onChange={e => changeHandler(e.target.value)}>
-          {options.map(o => <option value={o}>{o}</option>)}
+          {options.map(o => <option value={o} key={o}>{o}</option>)}
         </Form.Select>
       </Form.Group>
     </Form>
   );
 }
 
-function FormantForm({ citationForms, variety, changeHandler }) {
+function FormantForm({ citationForms, variety, changeHandler, formantValues }) {
   return (
     <Accordion>
       {
-        citationForms.map((e, i) => <FormantInputs key={e} indexNumber={i} variety={variety} citationForm={e} formOnChange={changeHandler}/>)
+        citationForms.map((citationForm, i) => {
+          return (
+            <FormantInputs
+              key={citationForm}
+              indexNumber={i}
+              variety={variety}
+              citationForm={citationForm}
+              formantValues={formantValues[citationForm]}
+              formOnChange={changeHandler}/>
+          )
+        })
       }
     </Accordion>
   );
@@ -141,19 +229,19 @@ function FormantInputs(props) {
       <Accordion.Header>"{props.citationForm}" vowel</Accordion.Header>
       <Accordion.Body>
         <p><i>rhymes with {citationFormRhymes[props.variety][props.citationForm].map(w => '"' + w + '"').join(', ')}</i></p>
-        <FormantInput formantN={1} citationForm={props.citationForm} formOnChange={props.formOnChange}/>
-        <FormantInput formantN={2} citationForm={props.citationForm} formOnChange={props.formOnChange}/>
+        <FormantInput formantN={1} citationForm={props.citationForm} formantValue={props.formantValues['f1']} formOnChange={props.formOnChange}/>
+        <FormantInput formantN={2} citationForm={props.citationForm} formantValue={props.formantValues['f2']} formOnChange={props.formOnChange}/>
       </Accordion.Body>
     </Accordion.Item>
   );
 }
 
-function FormantInput( { formantN, citationForm, formOnChange } ) {
+function FormantInput( { formantN, citationForm, formOnChange, formantValue } ) {
   return (
     <Form.Group as={Row} className="mb-3">
       <Form.Label column sm={2}>F{formantN}</Form.Label>
       <Col sm={10}>
-        <Form.Control type="number" onChange={e => formOnChange(citationForm, "f" + formantN, e.target.value)}/>
+        <Form.Control type="number" defaultValue={formantValue} onChange={e => formOnChange(citationForm, "f" + formantN, e.target.value)}/>
       </Col>
     </Form.Group>
   )
