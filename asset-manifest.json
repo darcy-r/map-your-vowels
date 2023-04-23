@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/map-your-vowels/static/css/main.13d8c4d6.css",
-    "main.js": "/map-your-vowels/static/js/main.5a42f4d9.js",
+    "main.css": "/map-your-vowels/static/css/main.56d97b7a.css",
+    "main.js": "/map-your-vowels/static/js/main.d6e0ee74.js",
     "static/js/787.ed75113b.chunk.js": "/map-your-vowels/static/js/787.ed75113b.chunk.js",
     "index.html": "/map-your-vowels/index.html",
-    "main.13d8c4d6.css.map": "/map-your-vowels/static/css/main.13d8c4d6.css.map",
-    "main.5a42f4d9.js.map": "/map-your-vowels/static/js/main.5a42f4d9.js.map",
+    "main.56d97b7a.css.map": "/map-your-vowels/static/css/main.56d97b7a.css.map",
+    "main.d6e0ee74.js.map": "/map-your-vowels/static/js/main.d6e0ee74.js.map",
     "787.ed75113b.chunk.js.map": "/map-your-vowels/static/js/787.ed75113b.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.13d8c4d6.css",
-    "static/js/main.5a42f4d9.js"
+    "static/css/main.56d97b7a.css",
+    "static/js/main.d6e0ee74.js"
   ]
 }
