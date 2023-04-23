@@ -1,5 +1,6 @@
 import { useState, React} from 'react';
 import Accordion from 'react-bootstrap/Accordion';
+import Button from 'react-bootstrap/Button';
 import Dropdown from 'react-bootstrap/Dropdown';
 import DropdownButton from 'react-bootstrap/DropdownButton';
 import Form from 'react-bootstrap/Form';
@@ -25,6 +26,20 @@ function reshapeUserData(userFormantValues) {
     }
   }
   return userChartData
+}
+
+function downloadInputData(jsonData) {
+  const columnHeader = "citation_form,f1,f2\n";
+  const csvString = columnHeader.concat(
+    Object.keys(jsonData).map((k) => [k, jsonData[k]["f1"], jsonData[k]["f1"]].join(",")).join("\n")
+  )
+  // const fileData = JSON.stringify(jsonData);
+  const blob = new Blob([csvString], {type: "text/plain"});
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.download = 'formant_values.csv';
+  link.href = url;
+  link.click();
 }
 
 function App() {
@@ -147,14 +162,14 @@ function App() {
             changeHandler={handleReferenceDataSelection}
             options={Object.keys(referenceData)}/>
           <h5>Your data</h5>
-          <p>
+          <div>
             You can upload your recorded formant values from a .csv file containing the columnns:
             <ul>
               <li><code>citation_form</code> containing the citation forms listed below (heed, hid, etc.)</li>
               <li><code>f1</code> containing the first formant values</li>
               <li><code>f2</code> containing the second formant values</li>
             </ul>
-          </p>
+          </div>
           <FileInput uploadFileFunc={uploadFile}/>
           <p>
             Or you can input and ajust the values manually using the forms below:
@@ -164,6 +179,9 @@ function App() {
             citationForms={citationForms[referenceLanguage]}
             formantValues={formantValues}
             changeHandler={handleChange}/>
+          <div className="important-button">
+            <Button variant="secondary" onClick={() => downloadInputData(formantValues)}>Download input data</Button>
+          </div>
         </div>
       </div>
     </div>
