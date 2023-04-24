@@ -8,6 +8,10 @@ import { schemeRdYlBu, interpolateRdYlBu } from 'd3-scale-chromatic';
 import { useTooltip, withTooltip, Tooltip, defaultStyles } from '@visx/tooltip';
 import { WithTooltipProvidedProps } from '@visx/tooltip/lib/enhancers/withTooltip';
 
+function onlyUnique(value, index, array) {
+  return array.indexOf(value) === index;
+}
+
 // tooltip stuff
 const tooltipStyles = {
   ...defaultStyles,
@@ -20,6 +24,13 @@ let tooltipTimeout;
 
 const blue = "#1f78b4"
 const orange = "#ff7f00"
+// colorbrewer
+const lightBlue = "#a6cee3"
+const fullBlue = "#1f78b4"
+const lightGreen = "#b2df8a"
+const fullGreen = "#33a02c"
+const fullRed = "#e31a1c"
+const fullOrange = "#ff7f00"
 
 // Hook
 function useWindowSize() {
@@ -79,8 +90,8 @@ function ScatterPlot(props) {
     domain: [yDomainMin - ((yDomainMax - yDomainMin) * 0.12), yDomainMax + ((yDomainMax - yDomainMin) * 0.08)],
   });
   const colourScale = scaleOrdinal({
-    domain: ["reference", "user input"],
-    range: [blue, orange],
+    domain: props.data.map(r => r.dataset).filter(onlyUnique),
+    range: [fullBlue, fullGreen, fullOrange, fullRed, lightBlue, lightGreen],
   });
   // Compose together the scale and accessor functions to get point functions
   const compose = (scale, accessor) => data => scale(accessor(data));
@@ -145,7 +156,7 @@ function ScatterPlot(props) {
                     pointerEvents="none"
                     fill={categoryColour(d)}
                   >
-                    {d.citation_form} {d.dataset == "reference" && "/" + d.description + "/"}
+                    {d.citation_form} {d.dataset != "user input" && "/" + d.description + "/"}
                   </text>
                 </Group>
               );

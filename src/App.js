@@ -43,8 +43,8 @@ function downloadInputData(jsonData) {
 }
 
 function App() {
-  const [referenceDataset, setReferenceDataset] = useState("Australian English male 1991-1994");
-  const [referenceLanguage, setReferenceLanguage] = useState("Australian English");
+  const [displayedVarieties, setDisplayedVarieties] = useState({"Australian English male 1991-1994" : true});
+  const [referenceLanguage, setReferenceLanguage] = useState("English");
   const [normalisationMethod, setNormalisationMethod] = useState("none");
   const [formantValues, setFormantValues] = useState(
     citationForms[referenceLanguage].reduce((o, key) => ({ ...o, [key]: {"f1" : "", "f2" : ""}}), {})
@@ -53,33 +53,79 @@ function App() {
     reshapeUserData(formantValues)
   );
   const [chartData, setChartData] = useState(
-    normaliseDataset(referenceData[referenceDataset], normalisationMethod).concat(reshapeUserData(formantValues, normalisationMethod))
+    normaliseDataset(referenceData["Australian English male 1991-1994"], normalisationMethod).concat(reshapeUserData(formantValues, normalisationMethod))
   );
 
   function handleChange(citationForm, formant, value) {
     let updateObj = formantValues;
     updateObj[citationForm][formant] = value;
     setFormantValues(updateObj);
+    // tidy this (this is repeated in handlePlotControlChange)
+    let referenceChartData = [];
+    for (let k of Object.keys(displayedVarieties)) {
+      if (displayedVarieties[k]) {
+        referenceChartData = referenceChartData.concat(
+          normaliseDataset(referenceData[k], normalisationMethod)
+        );
+      }
+    }
     setChartData(
-      normaliseDataset(referenceData[referenceDataset], normalisationMethod).concat(normaliseDataset(reshapedFormantValues, normalisationMethod))
+      referenceChartData.concat(
+        normaliseDataset(reshapeUserData(updateObj), normalisationMethod)
+      )
     );
   }
 
   function handleNormalisationSelection(selectedNormalisationMethod) {
     setNormalisationMethod(selectedNormalisationMethod);
+    // tidy this (this is repeated in handlePlotControlChange)
+    let referenceChartData = [];
+    for (let k of Object.keys(displayedVarieties)) {
+      if (displayedVarieties[k]) {
+        referenceChartData = referenceChartData.concat(
+          normaliseDataset(referenceData[k], selectedNormalisationMethod)
+        );
+      }
+    }
+    setChartData(
+      referenceChartData.concat(
+        normaliseDataset(reshapeUserData(formantValues), selectedNormalisationMethod)
+      )
+    );
   }
 
-  function handleReferenceDataSelection(selectedReferenceDataset) {
-    if (varietyParentLanguages[selectedReferenceDataset] != varietyParentLanguages[referenceDataset]) {
-      setFormantValues(
-        citationForms[varietyParentLanguages[selectedReferenceDataset]].reduce((o, key) => ({ ...o, [key]: {"f1" : "", "f2" : ""}}), {})
+  function handleReferenceLanguageSelection(selectedReferenceLanguage) {
+    setReferenceLanguage(selectedReferenceLanguage);
+    setFormantValues(
+      citationForms[selectedReferenceLanguage].reduce((o, key) => ({ ...o, [key]: {"f1" : "", "f2" : ""}}), {})
+    )
+  }
+
+  function handlePlotControlChange(e, language) {
+    let updateObj = displayedVarieties;
+    if (e.target.checked) {
+      updateObj[language] = true;
+    } else {
+      updateObj[language] = false;
+    }
+    setDisplayedVarieties(updateObj);
+    handleChartDataChange();
+  }
+
+  function handleChartDataChange() {
+    let referenceChartData = [];
+    for (let k of Object.keys(displayedVarieties)) {
+      if (displayedVarieties[k]) {
+        referenceChartData = referenceChartData.concat(
+          normaliseDataset(referenceData[k], normalisationMethod)
+        );
+      }
+    }
+    setChartData(
+      referenceChartData.concat(
+        normaliseDataset(reshapeUserData(formantValues), normalisationMethod)
       )
-    }
-    setReferenceDataset(selectedReferenceDataset);
-    // update the reference language only if it changes
-    if (varietyParentLanguages[selectedReferenceDataset] != referenceLanguage) {
-      setReferenceLanguage(varietyParentLanguages[selectedReferenceDataset]);
-    }
+    );
   }
 
   function uploadFile(event) {
@@ -111,8 +157,19 @@ function App() {
           setFormantValues(updateObj);
         }
         // update chart
+        // TODO: tidy up (this logic is duplicated several times)
+        let referenceChartData = [];
+        for (let k of Object.keys(displayedVarieties)) {
+          if (displayedVarieties[k]) {
+            referenceChartData = referenceChartData.concat(
+              normaliseDataset(referenceData[k], normalisationMethod)
+            );
+          }
+        }
         setChartData(
-          normaliseDataset(referenceData[referenceDataset], normalisationMethod).concat(normaliseDataset(userChartData, normalisationMethod))
+          referenceChartData.concat(
+            normaliseDataset(userChartData, normalisationMethod)
+          )
         );
     };
     reader.readAsText(file);
@@ -122,7 +179,7 @@ function App() {
     <div className="App">
       <div id="visualisation-pane">
         <ScatterPlot
-          data={normaliseDataset(referenceData[referenceDataset], normalisationMethod).concat(normaliseDataset(reshapeUserData(formantValues), normalisationMethod))}
+          data={chartData}
           normalisationMethod={normalisationMethod}
           />
       </div>
@@ -156,12 +213,18 @@ function App() {
           <p><i>
             normalisation is only effective once the entire vowel set has been entered
           </i></p>
-          <Selector
-            label="Reference data"
-            selectedValue={referenceDataset}
-            changeHandler={handleReferenceDataSelection}
-            options={Object.keys(referenceData)}/>
+          <h5>Display</h5>
+          <PlotControl
+            varieties={Object.keys(varietyParentLanguages)}
+            displayedVarieties={displayedVarieties}
+            handleChange={handlePlotControlChange}
+            />
           <h5>Your data</h5>
+          <Selector
+            label="Reference language"
+            selectedValue={referenceLanguage}
+            changeHandler={handleReferenceLanguageSelection}
+            options={Object.values(varietyParentLanguages).filter(onlyUnique)}/>
           <div>
             You can upload your recorded formant values from a .csv file containing the columnns:
             <ul>
@@ -175,7 +238,7 @@ function App() {
             Or you can input and ajust the values manually using the forms below:
           </p>
           <FormantForm
-            variety={varietyParentLanguages[referenceDataset]}
+            variety={referenceLanguage}
             citationForms={citationForms[referenceLanguage]}
             formantValues={formantValues}
             changeHandler={handleChange}/>
@@ -204,6 +267,31 @@ function FileInput({ uploadFileFunc }) {
       </Form>
     </div>
   );
+}
+
+function onlyUnique(value, index, array) {
+  return array.indexOf(value) === index;
+}
+
+function PlotControl({ varieties, displayedVarieties, handleChange }) {
+  return (
+    <Form className="plot-control">
+      {
+        varieties.map((variety) => {
+          return (
+            <Form.Check
+              type='checkbox'
+              key={variety}
+              id={variety}
+              label={variety}
+              checked={displayedVarieties[variety]? true : false}
+              onChange={(e) => handleChange(e, variety)}
+            />
+          )
+        })
+      }
+    </Form>
+  )
 }
 
 function Selector({ label, changeHandler, selectedValue, options }) {
