@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/map-your-vowels/static/css/main.2bd2da00.css",
-    "main.js": "/map-your-vowels/static/js/main.365e0b42.js",
+    "main.js": "/map-your-vowels/static/js/main.efbcdb37.js",
     "static/js/787.ed75113b.chunk.js": "/map-your-vowels/static/js/787.ed75113b.chunk.js",
     "index.html": "/map-your-vowels/index.html",
     "main.2bd2da00.css.map": "/map-your-vowels/static/css/main.2bd2da00.css.map",
-    "main.365e0b42.js.map": "/map-your-vowels/static/js/main.365e0b42.js.map",
+    "main.efbcdb37.js.map": "/map-your-vowels/static/js/main.efbcdb37.js.map",
     "787.ed75113b.chunk.js.map": "/map-your-vowels/static/js/787.ed75113b.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.2bd2da00.css",
-    "static/js/main.365e0b42.js"
+    "static/js/main.efbcdb37.js"
   ]
 }
